@@ -13,9 +13,9 @@ Metadata:
     LicenseUrl: "LICENSE"
     ReadmeUrl: "README.md"
     Labels: ["serverless", "cost", "marketplace", "billing", "metering", "reporting"]
-    HomePageUrl: "https://github.com/Sage-Bionetworks-IT/lambda-template"
+    HomePageUrl: "https://github.com/Sage-Bionetworks-IT/lambda-sc-cost-meter"
     SemanticVersion: "0.0.1"
-    SourceCodeUrl: "https://github.com/Sage-Bionetworks-IT/lambda-template/tree/0.0.1"
+    SourceCodeUrl: "https://github.com/Sage-Bionetworks-IT/lambda-sc-cost-meter/tree/0.0.1"
 
 Globals:
   Function:
