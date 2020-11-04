@@ -2,7 +2,7 @@ import json
 
 import pytest
 
-from hello_world import app
+from sc_cost_meter import app
 
 
 @pytest.fixture()

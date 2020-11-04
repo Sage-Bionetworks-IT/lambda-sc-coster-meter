@@ -1,11 +1,5 @@
-# lambda-template
-A GitHub template for quickly starting a new AWS lambda project.
-
-## Naming
-Naming conventions:
-* for a vanilla Lambda: `lambda-<context>`
-* for a Cloudformation Transform macro: `cfn-macro-<context>`
-* for a Cloudformation Custom Resource: `cfn-cr-<context>`
+# lambda-sc-cost-meter
+Lambda to report Service Catalog costs to the AWS Marketplace
 
 ## Development
 
@@ -39,7 +33,7 @@ Running integration tests
 [requires docker](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-cli-command-reference-sam-local-start-api.html)
 
 ```shell script
-$ sam local invoke HelloWorldFunction --event events/event.json
+$ sam local invoke MeterFunction --event events/event.json
 ```
 
 ## Deployment
@@ -54,9 +48,9 @@ which requires permissions to upload to Sage
 ```shell script
 sam package --template-file .aws-sam/build/template.yaml \
   --s3-bucket essentials-awss3lambdaartifactsbucket-x29ftznj6pqw \
-  --output-template-file .aws-sam/build/lambda-template.yaml
+  --output-template-file .aws-sam/build/lambda-sc-cost-meter.yaml
 
-aws s3 cp .aws-sam/build/lambda-template.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/lambda-template/master/
+aws s3 cp .aws-sam/build/lambda-sc-cost-meter.yaml s3://bootstrap-awss3cloudformationbucket-19qromfd235z9/lambda-sc-cost-meter/master/
 ```
 
 ## Publish Lambda
@@ -66,7 +60,7 @@ Publishing the lambda makes it available in your AWS account.  It will be access
 the [serverless application repository](https://console.aws.amazon.com/serverlessrepo).
 
 ```shell script
-sam publish --template .aws-sam/build/lambda-template.yaml
+sam publish --template .aws-sam/build/lambda-sc-cost-meter.yaml
 ```
 
 ### Public access
@@ -83,23 +77,23 @@ aws serverlessrepo put-application-policy \
 
 ### Sceptre
 Create the following [sceptre](https://github.com/Sceptre/sceptre) file
-config/prod/lambda-template.yaml
+config/prod/lambda-sc-cost-meter.yaml
 
 ```yaml
-template_path: "remote/lambda-template.yaml"
-stack_name: "lambda-template"
+template_path: "remote/lambda-sc-cost-meter.yaml"
+stack_name: "lambda-sc-cost-meter"
 stack_tags:
   Department: "Platform"
   Project: "Infrastructure"
   OwnerEmail: "it@sagebase.org"
 hooks:
   before_launch:
-    - !cmd "curl https://bootstrap-awss3cloudformationbucket-19qromfd235z9.s3.amazonaws.com/lambda-template/master/lambda-template.yaml --create-dirs -o templates/remote/lambda-template.yaml"
+    - !cmd "curl https://bootstrap-awss3cloudformationbucket-19qromfd235z9.s3.amazonaws.com/lambda-sc-cost-meter/master/lambda-sc-cost-meter.yaml --create-dirs -o templates/remote/lambda-sc-cost-meter.yaml"
 ```
 
 Install the lambda using sceptre:
 ```shell script
-sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/lambda-template.yaml
+sceptre --var "profile=my-profile" --var "region=us-east-1" launch prod/lambda-sc-cost-meter.yaml
 ```
 
 ### AWS Console
