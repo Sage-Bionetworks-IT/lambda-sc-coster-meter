@@ -3,9 +3,23 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Lambda to report Service Catalog costs to the AWS Marketplace
 
+Metadata:
+  AWS::ServerlessRepo::Application:
+    Name: "lambda-sc-cost-meter"
+    Description: "Lambda to report Service Catalog costs to the AWS Marketplace"
+    Author: "Sage-Bionetworks"
+    SpdxLicenseId: "Apache-2.0"
+    # paths are relative to .aws-sam/build directory
+    LicenseUrl: "LICENSE"
+    ReadmeUrl: "README.md"
+    Labels: ["serverless", "cost", "marketplace", "billing", "metering", "reporting"]
+    HomePageUrl: "https://github.com/Sage-Bionetworks-IT/lambda-template"
+    SemanticVersion: "0.0.1"
+    SourceCodeUrl: "https://github.com/Sage-Bionetworks-IT/lambda-template/tree/0.0.1"
+
 Globals:
   Function:
-    Timeout: 3
+    Timeout: 30
 
 Resources:
   MeterFunction:
