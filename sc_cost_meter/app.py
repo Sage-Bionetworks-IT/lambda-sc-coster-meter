@@ -1,42 +1,24 @@
-import json
+import logging
+import sc_cost_meter.utils as utils
 
-# import requests
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
+
+
+def meter_instances():
+  instances = utils.get_instances(['running'])
+  for instance in instances:
+    instance_id = instance['InstanceId']
+    tags = utils.get_tags(instance_id)
+    for tag in tags:
+      if tag['Key'] == 'marketplace:customerId':
+        customer_id = tag['Value']
+        product_code = utils.get_marketplace_product_code(instance)
+        if product_code:
+          price = utils.get_ec2_on_demand_pricing(instance)
+          utils.report_usage(price, customer_id, product_code)
+          log.info(f'recorded meter usage for customer {customer_id}')
 
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
-
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
-
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
-    }
+  meter_instances()
