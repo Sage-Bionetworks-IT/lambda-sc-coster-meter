@@ -100,9 +100,9 @@ def get_tags(instance):
   return tags
 
 
-def get_marketplace_product_code(instance):
+def get_instance_product_code(instance):
   '''
-  Get the Marketplace product code
+  Get the Marketplace product code from the instance
   :param instance: an EC2 instance
   :return: product code
   '''
@@ -116,6 +116,18 @@ def get_marketplace_product_code(instance):
 
   return None
 
+def get_marketplace_product_code(tags):
+  '''
+  Get the Marketplace product code from a list of tags
+  :param tags: list of tags
+  :return: Marketplace product code if a tag exists, otherwise None
+  '''
+  product_code = None
+  for tag in tags:
+    if tag['Key'] == 'marketplace:productCode':
+      product_code = tag['Value']
+
+  return product_code
 
 def report_usage(price, customer_id, product_code):
   '''

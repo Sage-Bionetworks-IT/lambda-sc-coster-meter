@@ -16,7 +16,7 @@ def meter_instances():
     for tag in tags:
       if tag['Key'] == 'marketplace:customerId':
         customer_id = tag['Value']
-        product_code = utils.get_marketplace_product_code(instance)
+        product_code = utils.get_marketplace_product_code(tags)
         if product_code:
           price = utils.get_ec2_on_demand_pricing(instance)
           status = utils.report_usage(price, customer_id, product_code)
