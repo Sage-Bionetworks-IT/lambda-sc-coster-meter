@@ -8,7 +8,6 @@ from botocore.stub import Stubber
 from sc_cost_meter import utils
 
 
-# instance state info https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceState.html
 class TestGetInstances(unittest.TestCase):
 
   def test_get_running_instance(self):

@@ -20,26 +20,38 @@ def get_meteringmarketplace_client():
   return boto3.client('meteringmarketplace')
 
 def get_instances(states):
-   client = get_ec2_client()
-   response = client.describe_instances(
-      Filters=[
-         {
-            'Name': 'instance-state-name',
-            'Values': states
-         }
-      ]
-   )
+  '''
+  Get all EC2 instances in the specfied states
+  :param states: list of states (['pending'|'running'|'shutting-down'|'terminated'|'stopping'|'stopped'])
+         https://docs.aws.amazon.com/AWSEC2/latest/APIReference/API_InstanceState.html
+  :return: list of instances in the state specified by states, empty list if none are
+           found in the specified states
+  '''
+  client = get_ec2_client()
+  response = client.describe_instances(
+    Filters=[
+       {
+          'Name': 'instance-state-name',
+          'Values': states
+       }
+    ]
+  )
 
-   instances = []
-   reservations = response["Reservations"]
-   if reservations:
-      for reservation in reservations:
-          for instance in reservation["Instances"]:
-            instances.append(instance)
+  instances = []
+  reservations = response["Reservations"]
+  if reservations:
+    for reservation in reservations:
+        for instance in reservation["Instances"]:
+          instances.append(instance)
 
-   return instances
+  return instances
 
 def get_ec2_on_demand_pricing(instance):
+  '''
+  Get the on demand pricing for an instance
+  :param instance: an EC2 in the AWS account
+  :return: on demand price of the instance (https://aws.amazon.com/ec2/pricing/on-demand/)
+  '''
   instance_region = instance['Placement']['AvailabilityZone'][0:-1]
   instance_id = instance['InstanceId']
   instance_type = instance['InstanceType']
@@ -67,6 +79,11 @@ def get_ec2_on_demand_pricing(instance):
   return price
 
 def get_tags(instance):
+  '''
+  Get all tags for an instance
+  :param instance: EC2 instance
+  :return: list of tags
+  '''
   client = get_ec2_client()
   response = client.describe_tags(
     Filters = [
@@ -84,23 +101,35 @@ def get_tags(instance):
 
 
 def get_marketplace_product_code(instance):
-   product_codes = instance['ProductCodes']
-   if len(product_codes) >= 1:
-      for product_code in product_codes:
-         if product_code['ProductCodeType'] == 'marketplace':
-           product_code_id = product_code['ProductCodeId']
-           log.debug(f'Product Code ID = {product_code_id}')
-           return product_code_id
+  '''
+  Get the Marketplace product code
+  :param instance: an EC2 instance
+  :return: product code
+  '''
+  product_codes = instance['ProductCodes']
+  if len(product_codes) >= 1:
+    for product_code in product_codes:
+       if product_code['ProductCodeType'] == 'marketplace':
+         product_code_id = product_code['ProductCodeId']
+         log.debug(f'Product Code ID = {product_code_id}')
+         return product_code_id
 
-   return None
+  return None
 
 
 def report_usage(price, customer_id, product_code):
+  '''
+  Report cost information to the Marketplace
+  :param price: the product's price
+  :param customer_id: the customer identifier
+  :param product_code: the product code
+  :return: reporting status ('Success'|'CustomerNotSubscribed'|'DuplicateRecord')
+  '''
   cost_accrued_rate = 0.0001  # TODO: use mareketplace get_dimension API to get this info
   quantity = int(price / cost_accrued_rate)
 
   mrktpl_client = get_meteringmarketplace_client()
-  mrktpl_client.batch_meter_usage(
+  response = mrktpl_client.batch_meter_usage(
     UsageRecords=[
       {
         'Timestamp': datetime.now(),
@@ -111,3 +140,5 @@ def report_usage(price, customer_id, product_code):
     ],
     ProductCode=product_code
   )
+
+  return response['Status']

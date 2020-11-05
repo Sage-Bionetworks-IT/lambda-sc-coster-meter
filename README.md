@@ -1,6 +1,14 @@
 # lambda-sc-cost-meter
 Lambda to report Service Catalog costs to the AWS Marketplace
 
+## Description
+
+This app will look for resources in an AWS account that contain tags indicating that
+the resources are provisioned by a Service Catalog subscriber.  Subscriber resources
+typically contain `marketplace:productCode` and `marketplace:customerId` tags.  This
+app will gather these resources and send cost information to the AWS Marketplace
+every hour.
+
 ## Development
 
 ### Contributions
