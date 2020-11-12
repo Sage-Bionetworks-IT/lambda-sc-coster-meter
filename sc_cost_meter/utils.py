@@ -49,11 +49,12 @@ def get_instances(states):
 
   return instances
 
-def get_ec2_on_demand_pricing(instance):
+def get_ec2_hourly_on_demand_pricing(instance):
   '''
-  Get the on demand pricing for an instance
+  Get the hourly on demand pricing for an instance
   :param instance: an EC2 in the AWS account
-  :return: on demand price of the instance (https://aws.amazon.com/ec2/pricing/on-demand/)
+  :return: the hourly on demand price of the instance
+          https://aws.amazon.com/ec2/pricing/on-demand/
   '''
   instance_region = instance['Placement']['AvailabilityZone'][0:-1]
   instance_id = instance['InstanceId']
