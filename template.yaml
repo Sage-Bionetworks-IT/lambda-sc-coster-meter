@@ -67,6 +67,7 @@ Resources:
         - !Ref BucketTagPolicy
         - !Ref SystemManagerPolicy
         - !Ref MarketplacePolicy
+        - !Ref CostExplorerPolicy
 
   InstanceTagPolicy:
     Type: AWS::IAM::ManagedPolicy
@@ -115,6 +116,21 @@ Resources:
             Action:
               - 'aws-marketplace:BatchMeterUsage'
               - 'aws-marketplace:GetEntitlements'
+            Resource: '*'
+
+  CostExplorerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CostExploerViewAccess
+            Effect: 'Allow'
+            Action:
+              - 'aws-portal:View*'
+              - 'ce:Get*'
+              - 'ce:List*'
+              - 'ce:Describe*'
             Resource: '*'
 
 Outputs:

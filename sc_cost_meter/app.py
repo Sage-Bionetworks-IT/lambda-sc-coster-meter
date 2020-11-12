@@ -18,10 +18,19 @@ def meter_instances():
         customer_id = tag['Value']
         product_code = utils.get_marketplace_product_code(tags)
         if product_code:
-          price = utils.get_ec2_on_demand_pricing(instance)
-          status = utils.report_usage(price, customer_id, product_code)
+          cost_tags = {
+            "Key": "marketplace:customerId",
+                  "Values": [
+                     customer_id
+                  ]
+          }
+          cost = utils.get_ec2_cost(cost_tags)
+          results = utils.report_usage(cost, customer_id, product_code)
+          status = results[0]["Status"]
           if status == 'Success':
-            log.info(f'recorded meter usage for customer {customer_id}')
+            meter_record_id = results[0]["MeteringRecordId"]
+            log.info(f'recorded meter usage for customer {customer_id} '
+                     f'with meter record id {meter_record_id}')
           else:
             log.info(f'failed to meter usage for customer {customer_id} with status {status}')
 

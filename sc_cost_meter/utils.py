@@ -3,7 +3,7 @@ import boto3
 import logging
 import os
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -15,6 +15,9 @@ def get_ec2_client():
 
 def get_ssm_client():
   return boto3.client('ssm')
+
+def get_ce_client():
+  return boto3.client('ce')
 
 def get_meteringmarketplace_client():
   return boto3.client('meteringmarketplace')
@@ -78,6 +81,53 @@ def get_ec2_on_demand_pricing(instance):
   log.debug(f'price for {instance_id} is {price}')
   return price
 
+def get_ec2_cost(tags):
+  '''
+  Get the total cost of all EC2s with an attached set of tags.
+  :param tags: a dictionary of tags (i.e. {"Key": "customerId", "Values": ["1234ABCD"]})
+  :return: the total cost of all EC2s
+          Note: AWS billing history shows that cost data is only updated every 24 hours
+          therefore the response from get_cost_and_usage API may lag up to one day.
+          This means that the only way to get consistent billing info is to query the
+          previous day's billing.
+  '''
+  client = get_ce_client()
+
+  # Get the cost from the previous day
+  current_time = datetime.utcnow()
+  start_time = current_time - timedelta(days=2)
+  end_time = current_time - timedelta(days=1)
+
+  result = client.get_cost_and_usage(
+    TimePeriod={
+      "Start": start_time.strftime('%Y-%m-%d'),
+      "End": end_time.strftime('%Y-%m-%d')
+    },
+    Granularity="DAILY",
+    Filter={
+      "And": [
+        {
+          "Dimensions": {
+            "Key": "SERVICE",
+            "Values": [
+              "Amazon Elastic Compute Cloud - Compute",  # instance cost
+              "EC2 - Other"   # EB Volume, data transfer, elastic IP, etc..
+            ]
+          }
+        },
+        {
+          "Tags": tags
+        },
+      ]
+    },
+    Metrics=["UnblendedCost"]
+  )
+
+  cost = result[0]["Total"]["UnblendedCost"]["Amount"]   # total cost (EC2 instance + EC2-other)
+
+  return cost
+
+
 def get_tags(instance):
   '''
   Get all tags for an instance
@@ -118,7 +168,8 @@ def get_instance_product_code(instance):
 
 def get_marketplace_product_code(tags):
   '''
-  Get the Marketplace product code from a list of tags
+  Get the Marketplace product code for the Service Catalog SaaS service
+  that we apply as a tag to the resource when we provision it.
   :param tags: list of tags
   :return: Marketplace product code if a tag exists, otherwise None
   '''
@@ -129,22 +180,22 @@ def get_marketplace_product_code(tags):
 
   return product_code
 
-def report_usage(price, customer_id, product_code):
+def report_usage(cost, customer_id, product_code):
   '''
   Report cost information to the Marketplace
-  :param price: the product's price
+  :param cost: the product cost
   :param customer_id: the customer identifier
   :param product_code: the product code
   :return: reporting status ('Success'|'CustomerNotSubscribed'|'DuplicateRecord')
   '''
-  cost_accrued_rate = 0.0001  # TODO: use mareketplace get_dimension API to get this info
-  quantity = int(price / cost_accrued_rate)
+  cost_accrued_rate = 0.001  # TODO: use mareketplace get_dimension API to get this info
+  quantity = int(cost / cost_accrued_rate)
 
   mrktpl_client = get_meteringmarketplace_client()
   response = mrktpl_client.batch_meter_usage(
     UsageRecords=[
       {
-        'Timestamp': datetime.now(),
+        'Timestamp': datetime.utcnow(),
         'CustomerIdentifier': customer_id,
         'Dimension': 'costs_accrued',
         'Quantity': quantity
@@ -153,4 +204,4 @@ def report_usage(price, customer_id, product_code):
     ProductCode=product_code
   )
 
-  return response['Status']
+  return response["Results"]
