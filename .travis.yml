@@ -10,7 +10,7 @@ env:
     - CFN_BUCKET="bootstrap-awss3cloudformationbucket-19qromfd235z9"
 install:
   - pip install pipenv
-  - pipenv install --dev --skip-lock
+  - pipenv install --dev
 before_script:
   - mkdir -p ~/.aws
   - echo -e "[default]\nregion=us-east-1\nsource_profile=default\nrole_arn=$AwsCfServiceRoleArn" > ~/.aws/config

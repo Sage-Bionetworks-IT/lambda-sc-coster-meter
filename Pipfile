@@ -3,9 +3,6 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-[packages]
-awspricing = "~=2.0.3"
-
 [dev-packages]
 pytest = "~=6.0.1"
 pytest-mock = "~=3.3.1"

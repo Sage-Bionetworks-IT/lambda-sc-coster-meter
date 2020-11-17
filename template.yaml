@@ -26,8 +26,7 @@ Metadata:
 
 Globals:
   Function:
-    # the AWS pricing API takes ~30sec/per request with cache and ~10min/per request without cache
-    Timeout: 900  # max timeout is 15mins
+    Timeout: 60  # max timeout is 15mins
 
 Resources:
   MeterFunction:
@@ -62,7 +61,6 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
-        - arn:aws:iam::aws:policy/AWSPriceListServiceFullAccess
         - !Ref InstanceTagPolicy
         - !Ref BucketTagPolicy
         - !Ref SystemManagerPolicy

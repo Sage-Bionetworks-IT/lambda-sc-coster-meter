@@ -1,4 +1,3 @@
-import awspricing
 import boto3
 import logging
 import os
@@ -7,8 +6,6 @@ from datetime import datetime, timedelta
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
-
-os.environ["AWSPRICING_USE_CACHE"] = "1"  # enable cache for awspricing
 
 def get_ec2_client():
   return boto3.client('ec2')
@@ -48,39 +45,6 @@ def get_instances(states):
           instances.append(instance)
 
   return instances
-
-def get_ec2_hourly_on_demand_pricing(instance):
-  '''
-  Get the hourly on demand pricing for an instance
-  :param instance: an EC2 in the AWS account
-  :return: the hourly on demand price of the instance
-          https://aws.amazon.com/ec2/pricing/on-demand/
-  '''
-  instance_region = instance['Placement']['AvailabilityZone'][0:-1]
-  instance_id = instance['InstanceId']
-  instance_type = instance['InstanceType']
-
-  client = get_ssm_client()
-  response = client.describe_instance_information(
-    Filters=[
-       {
-          'Key': 'InstanceIds',
-          'Values': [instance_id]
-       }
-    ]
-  )
-  ssm_instance_info = response['InstanceInformationList'][0]
-  instance_platform = ssm_instance_info['PlatformType']
-
-  ec2_offer = awspricing.offer('AmazonEC2')
-  price = ec2_offer.ondemand_hourly(
-    instance_type,
-    operating_system=instance_platform,
-    region=instance_region
-  )
-
-  log.debug(f'price for {instance_id} is {price}')
-  return price
 
 def get_ec2_cost(tags):
   '''
