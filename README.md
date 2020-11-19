@@ -3,11 +3,24 @@ Lambda to report Service Catalog costs to the AWS Marketplace
 
 ## Description
 
-This app will look for resources in an AWS account that contain tags indicating that
-the resources are provisioned by a Service Catalog subscriber.  Subscriber resources
+This app will look for resources in an AWS account that contains tags indicating that
+the resources were provisioned by a Service Catalog subscriber.  SC subscriber resources
 typically contain `marketplace:productCode` and `marketplace:customerId` tags.  This
-app will gather these resources and send cost information to the AWS Marketplace
-every hour.
+app will report the total cost of all those resources to the AWS Marketplace every hour.
+
+## Prerequisites
+
+This application only works when used with the following:
+* [synapse-login-aws-infra](https://github.com/Sage-Bionetworks/synapse-login-aws-infra)
+* [synapse-login-scippol](https://github.com/Sage-Bionetworks/synapse-login-scipool)
+* [Cloudformation custom resource tagger](https://github.com/Sage-Bionetworks-IT/cfn-cr-synapse-tagger)
+* [AWS Service Catalog](https://aws.amazon.com/servicecatalog)
+
+The synapse-login-aws-infra will create a dynamo database.  The synapse-login-scipool
+will populate the database with Service Catalog subscriber (or customer)
+info (synpase id, customer id,product code, etc..)
+
+This app depends on an existing dynamo db with valid customer data.
 
 ## Development
 
