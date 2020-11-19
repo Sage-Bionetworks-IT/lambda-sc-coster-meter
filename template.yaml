@@ -3,12 +3,13 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Lambda to report Service Catalog costs to the AWS Marketplace
 
-Parameters:
-  Schedule:
-    Description: Schedule to execute this lambda
-    Type: String
-    Default: rate(1 day)
-    ConstraintDescription: "Use schedule format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.htm"
+#Parameters:
+# TODO: re-enable after completing tests
+#  Schedule:
+#    Description: Schedule to execute this lambda
+#    Type: String
+#    Default: rate(1 day)
+#    ConstraintDescription: "Use schedule format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.htm"
 
 Metadata:
   AWS::ServerlessRepo::Application:
