@@ -2,7 +2,7 @@ import boto3
 import logging
 import os
 
-from datetime import datetime, timedelta
+from datetime import datetime
 
 log = logging.getLogger(__name__)
 log.setLevel(logging.DEBUG)
@@ -122,25 +122,20 @@ def get_marketplace_product_code(synapse_id):
   return product_code
 
 
-def get_customer_cost_yesterday(customer_id):
+def get_customer_cost(customer_id, time_period, granularity):
   '''
-  Get the total cost of all resources tagged with the customer_id from
-  yestereday.
+  Get the total cost of all resources tagged with the customer_id for a given
+  time_period.  The time_period and time granularity must match.
   :param customer_id: the Marketplace customer ID
-  :return: the total cost of all resouurces and the currency unit
+  :param time_period: the cost time period
+  :param granularity: the granularity of time HOURLY|DAILY|MONTHLY
+  :return: the total cost of all resources and the currency unit
   '''
   client = get_ce_client()
 
-  current_time = datetime.utcnow()
-  start_time = current_time - timedelta(days=2)
-  end_time = current_time - timedelta(days=1)
-
-  response = client.get_cost_and_usage_with_resources(
-    TimePeriod={
-      "Start": start_time.strftime('%Y-%m-%d'),
-      "End": end_time.strftime('%Y-%m-%d')
-    },
-    Granularity="DAILY",
+  response = client.get_cost_and_usage(
+    TimePeriod=time_period,
+    Granularity=granularity,
     Filter={
       "Tags": {
         "Key": "marketplace:customerId",

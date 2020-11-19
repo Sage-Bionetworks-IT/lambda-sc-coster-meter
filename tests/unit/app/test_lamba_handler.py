@@ -18,7 +18,7 @@ class TestLambdaHandler(unittest.TestCase):
   @patch('sc_cost_meter.utils.get_marketplace_synapse_ids')
   @patch('sc_cost_meter.utils.get_marketplace_customer_id')
   @patch('sc_cost_meter.utils.get_marketplace_product_code')
-  @patch('sc_cost_meter.utils.get_customer_cost_yesterday')
+  @patch('sc_cost_meter.utils.get_customer_cost')
   @patch('sc_cost_meter.utils.report_cost')
   def test_report_cost_multiple_customers(self,
                               mock_report_usage,
