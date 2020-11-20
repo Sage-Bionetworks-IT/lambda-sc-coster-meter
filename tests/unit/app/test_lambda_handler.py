@@ -31,4 +31,5 @@ class TestLambdaHandler(unittest.TestCase):
     mock_get_marketplace_product_code.return_value = "prod-1234"
     mock_get_cusomter_cost_yesterday.return_value = ["2.1111", "USD"]
     app.lambda_handler(None, None)
+    mock_report_usage.called_with("2.1111", "cust-1111", "prod-1234")
     self.assertEqual(mock_report_usage.call_count, 2)

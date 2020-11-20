@@ -34,7 +34,7 @@ def get_env_var_value(env_var):
   return value
 
 def get_marketplace_synapse_ids():
-  '''Get Synapse IDs from the Marketplace Dynamo DB, these are the Service Catalog customers.
+  '''Get Synapse IDs from the Marketplace Dynamo DB, these are the Marketplace customers.
   Assumes that there is a Dynamo DB with a table containing a mapping of Synapse
   IDs to SC subscriber data
   :return a list of synapse IDs, otherwise return empty list if no customers are in DB
