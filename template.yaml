@@ -148,6 +148,9 @@ Resources:
             Action:
               - 'dynamodb:*Get*'
               - 'dynamodb:*List*'
+              - 'dynamodb:DescribeTable'
+              - 'dynamodb:scan'
+              - 'dynamodb:query'
             Effect: Allow
             Resource: !ImportValue
               'Fn::Sub': '${AWS::Region}-marketplace-dynamo-MarketplaceDynamoDBTableArn'
