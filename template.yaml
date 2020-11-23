@@ -3,6 +3,14 @@ Transform: AWS::Serverless-2016-10-31
 Description: >
   Lambda to report Service Catalog costs to the AWS Marketplace
 
+#Parameters:
+# TODO: re-enable after completing tests
+#  Schedule:
+#    Description: Schedule to execute this lambda
+#    Type: String
+#    Default: rate(1 day)
+#    ConstraintDescription: "Use schedule format: https://docs.aws.amazon.com/AmazonCloudWatch/latest/events/ScheduledEvents.htm"
+
 Metadata:
   AWS::ServerlessRepo::Application:
     Name: "lambda-sc-cost-meter"
@@ -19,7 +27,7 @@ Metadata:
 
 Globals:
   Function:
-    Timeout: 30
+    Timeout: 180  # max timeout is 15mins
 
 Resources:
   MeterFunction:
@@ -30,11 +38,20 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt FunctionRole.Arn
       Events:
+        # TODO: re-enable after completing tests
+        # RecurringSchedule:
+        #  Type: Schedule
+        #  Properties:
+        #    Schedule: !Ref Schedule
         MeterApi:
           Type: Api
           Properties:
             Path: /meter
             Method: get
+      Environment:
+        Variables:
+          MARKETPLACE_ID_DYNAMO_TABLE_NAME: !ImportValue
+            'Fn::Sub': '${AWS::Region}-marketplace-dynamo-MarketplaceDynamoDBTable'
 
   FunctionRole:
     Type: AWS::IAM::Role
@@ -50,6 +67,90 @@ Resources:
               - sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+        - !Ref InstanceTagPolicy
+        - !Ref BucketTagPolicy
+        - !Ref SystemManagerPolicy
+        - !Ref MarketplacePolicy
+        - !Ref CostExplorerPolicy
+        - !Ref DynamoDbManagedPolicy
+
+  InstanceTagPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ReadTags
+            Effect: 'Allow'
+            Action:
+              - 'ec2:DescribeTags'
+            Resource: '*'
+
+  BucketTagPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ReadTags
+            Effect: 'Allow'
+            Action:
+              - 's3:GetBucketTagging'
+            Resource: '*'
+
+  SystemManagerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: ReadTags
+            Effect: 'Allow'
+            Action:
+              - 'ssm:DescribeInstanceInformation'
+            Resource: '*'
+
+  MarketplacePolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: MarketplaceAccess
+            Effect: 'Allow'
+            Action:
+              - 'aws-marketplace:BatchMeterUsage'
+              - 'aws-marketplace:GetEntitlements'
+            Resource: '*'
+
+  CostExplorerPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: CostExploerViewAccess
+            Effect: 'Allow'
+            Action:
+              - 'aws-portal:View*'
+              - 'ce:Get*'
+              - 'ce:List*'
+              - 'ce:Describe*'
+            Resource: '*'
+
+  DynamoDbManagedPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: DynamoDbAccess
+            Action:
+              - 'dynamodb:*Get*'
+              - 'dynamodb:*List*'
+            Effect: Allow
+            Resource: !ImportValue
+              'Fn::Sub': '${AWS::Region}-marketplace-dynamo-MarketplaceDynamoDBTableArn'
 
 Outputs:
   # ServerlessRestApi is an implicit API created out of Events key under Serverless::Function

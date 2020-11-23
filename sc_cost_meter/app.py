@@ -1,42 +1,27 @@
-import json
+import logging
+import sc_cost_meter.utils as utils
 
-# import requests
+from datetime import datetime, timedelta
 
+log = logging.getLogger(__name__)
+log.setLevel(logging.DEBUG)
 
 def lambda_handler(event, context):
-    """Sample pure Lambda function
+  synapse_ids = utils.get_marketplace_synapse_ids()
+  log.debug(f'customers list: {synapse_ids}')
+  for synapse_id in synapse_ids:
+    customer_id = utils.get_marketplace_customer_id(synapse_id)
+    log.debug(f'marketplace customer ID: {customer_id}')
+    product_code = utils.get_marketplace_product_code(synapse_id)
+    log.debug(f'marketplace product code: {product_code}')
 
-    Parameters
-    ----------
-    event: dict, required
-        API Gateway Lambda Proxy Input Format
-
-        Event doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html#api-gateway-simple-proxy-for-lambda-input-format
-
-    context: object, required
-        Lambda Context runtime methods and attributes
-
-        Context doc: https://docs.aws.amazon.com/lambda/latest/dg/python-context-object.html
-
-    Returns
-    ------
-    API Gateway Lambda Proxy Output Format: dict
-
-        Return doc: https://docs.aws.amazon.com/apigateway/latest/developerguide/set-up-lambda-proxy-integrations.html
-    """
-
-    # try:
-    #     ip = requests.get("http://checkip.amazonaws.com/")
-    # except requests.RequestException as e:
-    #     # Send some context about this error to Lambda Logs
-    #     print(e)
-
-    #     raise e
-
-    return {
-        "statusCode": 200,
-        "body": json.dumps({
-            "message": "hello world",
-            # "location": ip.text.replace("\n", "")
-        }),
+    current_time = datetime.utcnow()
+    start_time = current_time - timedelta(days=2)
+    end_time = current_time - timedelta(days=1)
+    yesterday = {
+      "Start": start_time.strftime('%Y-%m-%d'),
+      "End": end_time.strftime('%Y-%m-%d')
     }
+
+    cost, unit = utils.get_customer_cost(customer_id, yesterday, "DAILY")
+    utils.report_cost(cost, customer_id, product_code)
