@@ -115,7 +115,6 @@ def get_marketplace_product_code(synapse_id):
 
     if "Item" in response.keys():
       product_code = response["Item"][ddb_product_code_attribute]["S"]
-      log.debug(f'marketplace product code: {product_code}')
     else:
       log.info(f'cannot find registration for synapse user: {synapse_id}')
 
@@ -150,12 +149,12 @@ def get_customer_cost(customer_id, time_period, granularity):
   results_by_time = response['ResultsByTime']
   cost = results_by_time[0]["Total"]["UnblendedCost"]["Amount"]
   unit = results_by_time[0]["Total"]["UnblendedCost"]["Unit"]
-  return cost, unit
+  return float(cost), unit
 
 def report_cost(cost, customer_id, product_code):
   '''
   Report the incurred cost of the customer's resources to the AWS Marketplace
-  :param cost: the cost
+  :param cost: the cost (as a float value)
   :param customer_id: the Marketplace customer ID
   :param product_code: the Marketplace product code
   '''
