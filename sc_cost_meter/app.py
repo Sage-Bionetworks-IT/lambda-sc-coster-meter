@@ -1,3 +1,4 @@
+import json
 import logging
 import sc_cost_meter.utils as utils
 
@@ -29,3 +30,11 @@ def lambda_handler(event, context):
     yesterday = get_time_period_yesterday()
     cost, unit = utils.get_customer_cost(customer_id, yesterday, "DAILY")
     utils.report_cost(cost, customer_id, product_code)
+
+  response = {
+    "statusCode": 200,
+    "body": json.dumps({
+      "message": "Metering processed",
+    }),
+  }
+  return response
