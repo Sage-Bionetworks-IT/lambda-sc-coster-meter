@@ -173,12 +173,12 @@ def report_cost(cost, customer_id, product_code):
     ],
     ProductCode=product_code
   )
-  log.debug(response)
-  status = response[0]["Status"]
+  log.debug(f'batch_meter_usage response: {response}')
+  results = response["Results"][0]
+  status = results["Status"]
   if status == 'Success':
-    meter_record_id = response[0]["MeteringRecordId"]
-    log.info(f'recorded meter usage for customer {customer_id} '
-             f'with meter record id {meter_record_id}')
+    log.info(f'usage record: {results}')
   else:
     # TODO: need to add a retry mechanism for failed reports
-    log.error(f'failed to meter usage for customer {customer_id} with status {status}')
+    unprocessed_records = response["UnprocessedRecords"][0]
+    log.error(f'unprocessed record: {unprocessed_records}')
