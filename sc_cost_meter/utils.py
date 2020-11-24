@@ -173,7 +173,7 @@ def report_cost(cost, customer_id, product_code):
     ],
     ProductCode=product_code
   )
-
+  log.debug(response)
   status = response[0]["Status"]
   if status == 'Success':
     meter_record_id = response[0]["MeteringRecordId"]
