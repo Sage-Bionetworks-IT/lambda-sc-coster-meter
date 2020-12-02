@@ -6,7 +6,7 @@ from botocore.stub import Stubber
 from sc_cost_meter import utils
 
 
-class TestGetMarketplaceCustomerID(unittest.TestCase):
+class TestGetMarketplaceProductCode(unittest.TestCase):
 
   @patch('sc_cost_meter.utils.get_env_var_value')
   def test_missing_ddb_table_name_var(self, mock_get_env_var_value):
