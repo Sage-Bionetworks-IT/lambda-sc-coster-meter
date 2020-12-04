@@ -20,7 +20,7 @@ class TestLambdaHandler(unittest.TestCase):
   @patch('sc_cost_meter.utils.get_customer_cost')
   @patch('sc_cost_meter.utils.report_cost')
   def test_report_cost_multiple_customers(self,
-                              mock_report_usage,
+                              mock_report_cost,
                               mock_get_cusomter_cost_yesterday,
                               mock_get_marketplace_customer_info,
                               mock_get_marketplace_synapse_ids):
@@ -30,7 +30,20 @@ class TestLambdaHandler(unittest.TestCase):
       'MarketplaceCustomerId': 'cust-1111',
       'ProductCode': 'prod-1234'
     }
-    mock_get_cusomter_cost_yesterday.return_value = ["2.1111", "USD"]
+    mock_get_cusomter_cost_yesterday.return_value = (2.1111, "USD")
+    mock_report_cost.return_value = (
+      'Success',
+      {
+        "UsageRecord": {
+          "Timestamp": "2020-10-10",
+          "CustomerIdentifier": "cust-123",
+          "Dimension": "costs_accrued",
+          "Quantity": 100
+        },
+        "MeteringRecordId": "rec-123",
+        "Status": "Success"
+      }
+    )
     app.lambda_handler(None, None)
-    mock_report_usage.called_with("2.1111", "cust-1111", "prod-1234")
-    self.assertEqual(mock_report_usage.call_count, 2)
+    mock_report_cost.called_with(2.1111, "cust-1111", "prod-1234")
+    self.assertEqual(mock_report_cost.call_count, 2)
