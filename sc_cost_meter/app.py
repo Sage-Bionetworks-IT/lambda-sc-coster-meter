@@ -1,5 +1,6 @@
 import json
 import logging
+import time
 import sc_cost_meter.utils as utils
 
 from datetime import datetime, timedelta
@@ -38,13 +39,12 @@ def lambda_handler(event, context):
     if status == 'Failed':
       num_failed_reports = num_failed_reports + 1
       log.info(f'Failed to report cost for product {product_code} to customer {customer_id}')
+      time.sleep(1)
     else:
-      metering_record_id = result['MeteringRecordId']
-      log.info(f'Successfully reported cost for product {product_code}'
-                f'to customer {customer_id} with record id {metering_record_id}')
+      log.info(f'Successfully reported cost with record {result}')
 
   num_success_reports = num_customers - num_failed_reports
-  message = f'Metering processed: failed reports ({num_failed_reports}),' \
+  message = f'Metering processed: failed reports ({num_failed_reports}), ' \
             f'successful reports ({num_success_reports})'
   log.info(message)
   response = {
@@ -53,3 +53,4 @@ def lambda_handler(event, context):
       "message": message,
     }),
   }
+  return response
