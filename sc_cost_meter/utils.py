@@ -115,34 +115,43 @@ def get_customer_cost(customer_id, time_period, granularity):
   unit = results_by_time[0]["Total"]["UnblendedCost"]["Unit"]
   return float(cost), unit
 
-def report_cost(cost, customer_id, product_code):
+def report_cost(cost, customer_id, product_code, attempts=3):
   '''
   Report the incurred cost of the customer's resources to the AWS Marketplace
   :param cost: the cost (as a float value)
   :param customer_id: the Marketplace customer ID
   :param product_code: the Marketplace product code
+  :param attempts: number of times to report cost in case of failure (default 3)
+  :return: a tuple with the status (Success|Failed) and the result record
   '''
+  if attempts < 1:
+    raise ValueError("Invalid attempts, expected 1 or more attempts")
+  if not isinstance(cost, float) or cost <= 0.0:
+    raise ValueError("Invalid cost, expected a float value greater than 0.0")
+
   cost_accrued_rate = 0.001  # TODO: use mareketplace get_dimension API to get this info
   quantity = int(cost / cost_accrued_rate)
 
   mrktpl_client = get_meteringmarketplace_client()
-  response = mrktpl_client.batch_meter_usage(
-    UsageRecords=[
-      {
-        'Timestamp': datetime.utcnow(),
-        'CustomerIdentifier': customer_id,
-        'Dimension': 'costs_accrued',
-        'Quantity': quantity
-      }
-    ],
-    ProductCode=product_code
-  )
-  log.debug(f'batch_meter_usage response: {response}')
-  results = response["Results"][0]
-  status = results["Status"]
-  if status == 'Success':
-    log.info(f'usage record: {results}')
-  else:
-    # TODO: need to add a retry mechanism for failed reports
-    unprocessed_records = response["UnprocessedRecords"][0]
-    log.error(f'unprocessed record: {unprocessed_records}')
+  response = {}
+  status = 'Failed'
+  result = None
+  for i in range(0, attempts):
+    if "Results" in response.keys() and 'UsageRecord' in response['Results'][0]:
+      result = response['Results'][0]
+      status = 'Success'
+      break
+    else:
+      response = mrktpl_client.batch_meter_usage(
+        UsageRecords=[
+          {
+            'Timestamp': datetime.utcnow(),
+            'CustomerIdentifier': customer_id,
+            'Dimension': 'costs_accrued',
+            'Quantity': quantity
+          }
+        ],
+        ProductCode=product_code
+      )
+
+  return status, result
